@@ -1,53 +1,85 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <title>إرسال طلب</title>
 
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
 <style>
+*{box-sizing:border-box;font-family:'Cairo',sans-serif}
+
 body{
-  font-family: "Segoe UI", Tahoma;
-  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  padding:20px;
-  color:#fff;
+  margin:0;
+  min-height:100vh;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
-.container{
-  background:#ffffff;
-  color:#333;
-  max-width:450px;
-  margin:auto;
-  padding:20px;
-  border-radius:12px;
-}
-h2{text-align:center;color:#2c5364}
-input,textarea,button{
+
+.card{
+  background:#fff;
   width:100%;
-  padding:10px;
-  margin:8px 0;
-  border-radius:6px;
-  border:1px solid #ccc;
+  max-width:420px;
+  padding:25px;
+  border-radius:16px;
+  box-shadow:0 20px 40px rgba(0,0,0,.2);
+  animation:fadeIn .6s ease;
+}
+
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+h2{
+  text-align:center;
+  margin-bottom:20px;
+  color:#2c5364;
+}
+
+input,textarea{
+  width:100%;
+  padding:12px;
+  margin-bottom:12px;
+  border-radius:10px;
+  border:1px solid #ddd;
   font-size:15px;
 }
+
+textarea{resize:none}
+
 button{
-  background:#2c5364;
+  width:100%;
+  padding:12px;
+  background:linear-gradient(135deg,#2c5364,#203a43);
   color:#fff;
   border:none;
+  border-radius:12px;
+  font-size:16px;
   cursor:pointer;
+  transition:.3s;
 }
-button:hover{background:#203a43}
+
+button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 20px rgba(0,0,0,.2);
+}
 </style>
 </head>
 <body>
 
-<div class="container">
-<h2>📦 إرسال طلب</h2>
+<div class="card">
+  <h2>📦 إرسال طلب</h2>
 
-<input id="name" placeholder="الاسم">
-<input id="phone" placeholder="رقم الهاتف">
-<input id="address" placeholder="العنوان بالتفصيل">
-<textarea id="orderText" placeholder="تفاصيل الطلب"></textarea>
+  <input id="name" placeholder="الاسم">
+  <input id="phone" placeholder="رقم الهاتف">
+  <input id="address" placeholder="العنوان بالتفصيل">
+  <textarea id="orderText" rows="3" placeholder="تفاصيل الطلب"></textarea>
 
-<button onclick="sendOrder()">إرسال الطلب</button>
+  <button onclick="sendOrder()">إرسال الطلب</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -68,37 +100,37 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 function todayKey(){
-  const d = new Date();
+  const d=new Date();
   return d.getFullYear()+""+(d.getMonth()+1)+""+d.getDate();
 }
 
 function sendOrder(){
-  const name = nameInput();
-  const phone = phoneInput();
-  const address = addressInput();
-  const orderText = orderInput();
+  const name=document.getElementById("name").value.trim();
+  const phone=document.getElementById("phone").value.trim();
+  const address=document.getElementById("address").value.trim();
+  const orderText=document.getElementById("orderText").value.trim();
 
-  if(!name || !phone || !address || !orderText){
+  if(!name||!phone||!address||!orderText){
     alert("❌ برجاء إدخال جميع البيانات");
     return;
   }
 
-  const dayKey = todayKey();
-  const counterRef = db.ref("dailyCounters/"+dayKey);
+  const dayKey=todayKey();
+  const counterRef=db.ref("dailyCounters/"+dayKey);
 
-  counterRef.transaction(c => (c||0)+1).then(res=>{
-    const serial = String(res.snapshot.val()).padStart(3,"0");
-    const orderNumber = dayKey+"-"+serial;
-    const now = new Date();
+  counterRef.transaction(c=>(c||0)+1).then(res=>{
+    const serial=String(res.snapshot.val()).padStart(3,"0");
+    const orderNumber=dayKey+"-"+serial;
+    const now=new Date();
 
     db.ref("orders").push({
       orderNumber,
-      date: now.toLocaleDateString("ar-EG"),
-      time: now.toLocaleTimeString("ar-EG"),
       name,
       phone,
-      address,
-      order: orderText,
+      address,   // ✅ العنوان يُرسل بوضوح
+      order:orderText,
+      date:now.toLocaleDateString("ar-EG"),
+      time:now.toLocaleTimeString("ar-EG"),
       note:"",
       status:"جديد"
     });
@@ -112,11 +144,6 @@ function sendOrder(){
     document.querySelectorAll("input,textarea").forEach(e=>e.value="");
   });
 }
-
-const nameInput   = ()=>document.getElementById("name").value.trim();
-const phoneInput  = ()=>document.getElementById("phone").value.trim();
-const addressInput= ()=>document.getElementById("address").value.trim();
-const orderInput  = ()=>document.getElementById("orderText").value.trim();
 </script>
 
 </body>
