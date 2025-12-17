@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>لوحة الطلبات</title>
+<style>
+body{
+  font-family: Arial;
+  padding:20px;
+}
+.order{
+  border:1px solid #ddd;
+  background:#f9f9f9;
+  padding:10px;
+  margin-bottom:10px;
+}
+</style>
+</head>
+<body>
+
+<h2>📋 الطلبات الواردة</h2>
+<div id="orders"></div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCZ03IL9Rta0QltmoU_CzWkDxMyz_raouI",
+  authDomain: "matger-3182c.firebaseapp.com",
+  databaseURL: "https://matger-3182c-default-rtdb.firebaseio.com",
+  projectId: "matger-3182c",
+  storageBucket: "matger-3182c.firebasestorage.app",
+  messagingSenderId: "526848781702",
+  appId: "1:526848781702:web:17907d973ded7894df5007",
+  measurementId: "G-9PYF9PFT9G"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const ordersDiv = document.getElementById("orders");
+
+db.ref("orders").on("child_added", snapshot => {
+  const o = snapshot.val();
+
+  ordersDiv.innerHTML += `
+    <div class="order">
+      <b>🆔 رقم الطلب:</b> ${o.orderNumber}<br>
+      <b>📅 تاريخ الطلب:</b> ${o.orderDate}<br>
+      <b>👤 الاسم:</b> ${o.name}<br>
+      <b>📞 الهاتف:</b> ${o.phone}<br>
+      <b>📍 العنوان:</b> ${o.address}<br>
+      <b>📦 الطلب:</b> ${o.order}<br>
+      <b>📝 ملاحظات:</b> ${o.notes}<br>
+      <b>📌 الحالة:</b> ${o.status}
+    </div>
+  `;
+});
+</script>
+
+</body>
+</html>

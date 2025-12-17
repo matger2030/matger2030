@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>إرسال طلب</title>
+<style>
+body{
+  font-family: Arial;
+  background:#f4f4f4;
+  padding:20px;
+}
+input,textarea,button{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  font-size:16px;
+}
+button{
+  background:#2e8b57;
+  color:#fff;
+  border:none;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<h2>📦 إرسال طلب</h2>
+
+<input id="name" placeholder="الاسم">
+<input id="phone" placeholder="رقم الهاتف">
+<input id="address" placeholder="العنوان">
+<textarea id="order" placeholder="تفاصيل الطلب"></textarea>
+<textarea id="notes" placeholder="ملاحظات (اختياري)"></textarea>
+
+<button onclick="sendOrder()">إرسال الطلب</button>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCZ03IL9Rta0QltmoU_CzWkDxMyz_raouI",
+  authDomain: "matger-3182c.firebaseapp.com",
+  databaseURL: "https://matger-3182c-default-rtdb.firebaseio.com",
+  projectId: "matger-3182c",
+  storageBucket: "matger-3182c.firebasestorage.app",
+  messagingSenderId: "526848781702",
+  appId: "1:526848781702:web:17907d973ded7894df5007",
+  measurementId: "G-9PYF9PFT9G"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+function sendOrder(){
+  const orderRef = db.ref("orders").push();
+  const orderNumber = orderRef.key;
+  const orderDate = new Date().toLocaleString("ar-EG");
+
+  const orderData = {
+    orderNumber: orderNumber,
+    orderDate: orderDate,
+    name: name.value,
+    phone: phone.value,
+    address: address.value,
+    order: order.value,
+    notes: notes.value,
+    status: "جديد"
+  };
+
+  orderRef.set(orderData).then(()=>{
+    alert(
+      "✅ تم إرسال طلبك بنجاح\n\n" +
+      "🆔 رقم الطلب: " + orderNumber + "\n" +
+      "📅 تاريخ الطلب: " + orderDate
+    );
+
+    document.querySelectorAll("input,textarea")
+      .forEach(el => el.value = "");
+  });
+}
+</script>
+
+</body>
+</html>
