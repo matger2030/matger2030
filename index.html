@@ -3,45 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <title>إرسال طلب</title>
-
 <style>
-body{
-  font-family: Arial, sans-serif;
-  background:#f4f4f4;
-  padding:20px;
-}
-input, textarea, button{
-  width:100%;
-  padding:10px;
-  margin:8px 0;
-  font-size:16px;
-}
-button{
-  background:#28a745;
-  color:white;
-  border:none;
-  cursor:pointer;
-}
+body{font-family:Arial;background:#f4f4f4;padding:20px}
+input,textarea,button{width:100%;padding:10px;margin:8px 0}
+button{background:#28a745;color:#fff;border:none;cursor:pointer}
 </style>
 </head>
 <body>
 
 <h2>📦 إرسال طلب</h2>
 
-<input type="text" id="name" placeholder="الاسم">
-<input type="text" id="phone" placeholder="رقم الهاتف">
-<input type="text" id="address" placeholder="العنوان">
+<input id="name" placeholder="الاسم">
+<input id="phone" placeholder="رقم الهاتف">
+<input id="address" placeholder="العنوان">
 <textarea id="orderText" placeholder="تفاصيل الطلب"></textarea>
-<textarea id="notes" placeholder="ملاحظات"></textarea>
 
-<button id="sendOrderBtn">إرسال الطلب</button>
+<button onclick="sendOrder()">إرسال الطلب</button>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-/* Firebase Config */
 const firebaseConfig = {
   apiKey: "AIzaSyCZ03IL9Rta0QltmoU_CzWkDxMyz_raouI",
   authDomain: "matger-3182c.firebaseapp.com",
@@ -53,49 +35,56 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+const db = firebase.database();
 
-/* زر الإرسال */
-document.getElementById("sendOrderBtn").onclick = function(){
+function todayKey(){
+  const d = new Date();
+  return d.getFullYear()+""+(d.getMonth()+1)+""+d.getDate();
+}
 
-  const name = document.getElementById("name").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-  const address = document.getElementById("address").value.trim();
-  const orderText = document.getElementById("orderText").value.trim();
-  const notes = document.getElementById("notes").value.trim();
+function sendOrder(){
+  const name = document.getElementById("name").value;
+  const phone = document.getElementById("phone").value;
+  const address = document.getElementById("address").value;
+  const orderText = document.getElementById("orderText").value;
 
-  if(name === "" || phone === "" || address === "" || orderText === ""){
+  if(!name || !phone || !address || !orderText){
     alert("❌ برجاء إدخال جميع البيانات");
     return;
   }
 
-  const ordersRef = database.ref("orders");
-  const newOrder = ordersRef.push();
+  const dayKey = todayKey();
+  const counterRef = db.ref("dailyCounters/"+dayKey);
 
-  const orderData = {
-    orderNumber: newOrder.key,
-    orderDate: new Date().toLocaleString("ar-EG"),
-    name: name,
-    phone: phone,
-    address: address,
-    order: orderText,
-    notes: notes,
-    status: "جديد"
-  };
+  counterRef.transaction(count => (count || 0) + 1)
+  .then(res=>{
+    const serial = String(res.snapshot.val()).padStart(3,"0");
+    const orderNumber = dayKey + "-" + serial;
 
-  newOrder.set(orderData)
-  .then(function(){
+    const now = new Date();
+    const orderData = {
+      orderNumber,
+      date: now.toLocaleDateString("ar-EG"),
+      time: now.toLocaleTimeString("ar-EG"),
+      name, phone, address,
+      order: orderText,
+      note: "",
+      status: "جديد"
+    };
+
+    db.ref("orders").push(orderData);
+
     alert(
-      "✅ تم إرسال الطلب بنجاح\n\n" +
-      "🆔 رقم الطلب: " + orderData.orderNumber
+      "✅ طلبك تم إرساله بنجاح\n\n" +
+      "رقم الطلب: " + orderNumber + "\n" +
+      "التاريخ: " + orderData.date + "\n" +
+      "الساعة: " + orderData.time + "\n\n" +
+      "سيتم التواصل معك هاتفياً في أقرب وقت"
     );
 
-    document.querySelectorAll("input, textarea").forEach(e => e.value = "");
-  })
-  .catch(function(error){
-    alert("خطأ: " + error.message);
+    document.querySelectorAll("input,textarea").forEach(e=>e.value="");
   });
-};
+}
 </script>
 
 </body>
