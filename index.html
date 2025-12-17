@@ -3,22 +3,52 @@
 <head>
 <meta charset="UTF-8">
 <title>إرسال طلب</title>
+
 <style>
-body{font-family:Arial;background:#f4f4f4;padding:20px}
-input,textarea,button{width:100%;padding:10px;margin:8px 0}
-button{background:#28a745;color:#fff;border:none;cursor:pointer}
+body{
+  font-family: "Segoe UI", Tahoma;
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  padding:20px;
+  color:#fff;
+}
+.container{
+  background:#ffffff;
+  color:#333;
+  max-width:450px;
+  margin:auto;
+  padding:20px;
+  border-radius:12px;
+}
+h2{text-align:center;color:#2c5364}
+input,textarea,button{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border-radius:6px;
+  border:1px solid #ccc;
+  font-size:15px;
+}
+button{
+  background:#2c5364;
+  color:#fff;
+  border:none;
+  cursor:pointer;
+}
+button:hover{background:#203a43}
 </style>
 </head>
 <body>
 
+<div class="container">
 <h2>📦 إرسال طلب</h2>
 
 <input id="name" placeholder="الاسم">
 <input id="phone" placeholder="رقم الهاتف">
-<input id="address" placeholder="العنوان">
+<input id="address" placeholder="العنوان بالتفصيل">
 <textarea id="orderText" placeholder="تفاصيل الطلب"></textarea>
 
 <button onclick="sendOrder()">إرسال الطلب</button>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -43,10 +73,10 @@ function todayKey(){
 }
 
 function sendOrder(){
-  const name = document.getElementById("name").value;
-  const phone = document.getElementById("phone").value;
-  const address = document.getElementById("address").value;
-  const orderText = document.getElementById("orderText").value;
+  const name = nameInput();
+  const phone = phoneInput();
+  const address = addressInput();
+  const orderText = orderInput();
 
   if(!name || !phone || !address || !orderText){
     alert("❌ برجاء إدخال جميع البيانات");
@@ -56,35 +86,37 @@ function sendOrder(){
   const dayKey = todayKey();
   const counterRef = db.ref("dailyCounters/"+dayKey);
 
-  counterRef.transaction(count => (count || 0) + 1)
-  .then(res=>{
+  counterRef.transaction(c => (c||0)+1).then(res=>{
     const serial = String(res.snapshot.val()).padStart(3,"0");
-    const orderNumber = dayKey + "-" + serial;
-
+    const orderNumber = dayKey+"-"+serial;
     const now = new Date();
-    const orderData = {
+
+    db.ref("orders").push({
       orderNumber,
       date: now.toLocaleDateString("ar-EG"),
       time: now.toLocaleTimeString("ar-EG"),
-      name, phone, address,
+      name,
+      phone,
+      address,
       order: orderText,
-      note: "",
-      status: "جديد"
-    };
-
-    db.ref("orders").push(orderData);
+      note:"",
+      status:"جديد"
+    });
 
     alert(
-      "✅ طلبك تم إرساله بنجاح\n\n" +
-      "رقم الطلب: " + orderNumber + "\n" +
-      "التاريخ: " + orderData.date + "\n" +
-      "الساعة: " + orderData.time + "\n\n" +
-      "سيتم التواصل معك هاتفياً في أقرب وقت"
+      "✅ تم إرسال طلبك بنجاح\n\n"+
+      "رقم الطلب: "+orderNumber+"\n"+
+      "سيتم التواصل معك هاتفياً"
     );
 
     document.querySelectorAll("input,textarea").forEach(e=>e.value="");
   });
 }
+
+const nameInput   = ()=>document.getElementById("name").value.trim();
+const phoneInput  = ()=>document.getElementById("phone").value.trim();
+const addressInput= ()=>document.getElementById("address").value.trim();
+const orderInput  = ()=>document.getElementById("orderText").value.trim();
 </script>
 
 </body>
