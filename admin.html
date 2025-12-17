@@ -3,41 +3,73 @@
 <head>
 <meta charset="UTF-8">
 <title>لوحة الأدمن</title>
+
 <style>
-body{font-family:Arial;padding:20px}
-.order{border:1px solid #ccc;padding:10px;margin-bottom:10px}
-button{margin:5px}
+body{
+  font-family:Tahoma;
+  background:#f1f3f6;
+  padding:20px;
+}
+.login, .panel{
+  max-width:900px;
+  margin:auto;
+}
+.login{
+  background:#fff;
+  padding:20px;
+  border-radius:10px;
+  text-align:center;
+}
+.panel h2{color:#2c5364}
+.order{
+  background:#fff;
+  border-radius:10px;
+  padding:15px;
+  margin-bottom:15px;
+  box-shadow:0 0 10px rgba(0,0,0,.1);
+}
+.order b{color:#2c5364}
+textarea{
+  width:100%;
+  margin-top:5px;
+}
+button{
+  padding:6px 10px;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+}
+.delete{background:#c0392b;color:#fff}
 </style>
 </head>
 <body>
 
-<div id="login">
-  <h3>🔐 دخول الأدمن</h3>
-  <input id="pass" type="password" placeholder="كلمة السر">
-  <button onclick="login()">دخول</button>
+<div class="login" id="login">
+<h3>🔐 دخول الأدمن</h3>
+<input id="pass" type="password" placeholder="كلمة السر">
+<br><br>
+<button onclick="login()">دخول</button>
 </div>
 
-<div id="panel" style="display:none">
-  <h2>📋 الطلبات</h2>
-  <p id="report"></p>
-  <div id="orders"></div>
+<div class="panel" id="panel" style="display:none">
+<h2>📋 الطلبات الواردة</h2>
+<p id="report"></p>
+<div id="orders"></div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-const ADMIN_PASS = "1979";
+const ADMIN_PASS="1979";
 
 function login(){
-  if(document.getElementById("pass").value === ADMIN_PASS){
-    document.getElementById("login").style.display="none";
-    document.getElementById("panel").style.display="block";
+  if(pass.value===ADMIN_PASS){
+    loginDiv(false);
     loadOrders();
-  }else{
-    alert("❌ كلمة السر غير صحيحة");
-  }
+  }else alert("❌ كلمة السر غير صحيحة");
 }
+const loginDiv=s=>{login.style.display=s?"block":"none";panel.style.display=s?"none":"block";}
 
 const firebaseConfig = {
   apiKey: "AIzaSyCZ03IL9Rta0QltmoU_CzWkDxMyz_raouI",
@@ -50,47 +82,35 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+const db=firebase.database();
 
 function loadOrders(){
-  const ordersDiv = document.getElementById("orders");
-  ordersDiv.innerHTML = "";
-  let count = 0;
-
-  db.ref("orders").on("value", snap=>{
+  const ordersDiv=document.getElementById("orders");
+  db.ref("orders").on("value",snap=>{
     ordersDiv.innerHTML="";
-    count = 0;
-
-    snap.forEach(child=>{
-      count++;
-      const o = child.val();
-      const id = child.key;
-
-      ordersDiv.innerHTML += `
+    let c=0;
+    snap.forEach(ch=>{
+      c++;
+      const o=ch.val(),id=ch.key;
+      ordersDiv.innerHTML+=`
         <div class="order">
-          <b>${o.orderNumber}</b><br>
-          ${o.name} - ${o.phone}<br>
-          ${o.order}<br>
-          <textarea onchange="addNote('${id}',this.value)" placeholder="ملاحظة">${o.note||""}</textarea><br>
-          <button onclick="deleteOrder('${id}')">🗑️ حذف</button>
-        </div>
-      `;
+          <b>رقم الطلب:</b> ${o.orderNumber}<br>
+          <b>الاسم:</b> ${o.name}<br>
+          <b>الهاتف:</b> ${o.phone}<br>
+          <b>العنوان:</b> ${o.address}<br>
+          <b>الطلب:</b> ${o.order}<br>
+          <b>التاريخ:</b> ${o.date} - ${o.time}<br>
+          <textarea placeholder="ملاحظة" onchange="note('${id}',this.value)">${o.note||""}</textarea>
+          <br><br>
+          <button class="delete" onclick="del('${id}')">🗑️ حذف</button>
+        </div>`;
     });
-
-    document.getElementById("report").innerText =
-      "📊 إجمالي الطلبات: " + count;
+    report.innerText="📊 إجمالي الطلبات: "+c;
   });
 }
 
-function deleteOrder(id){
-  if(confirm("هل تريد حذف الطلب؟")){
-    db.ref("orders/"+id).remove();
-  }
-}
-
-function addNote(id,note){
-  db.ref("orders/"+id+"/note").set(note);
-}
+function del(id){ if(confirm("حذف الطلب؟")) db.ref("orders/"+id).remove(); }
+function note(id,v){ db.ref("orders/"+id+"/note").set(v); }
 </script>
 
 </body>
