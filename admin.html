@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <title>لوحة الطلبات</title>
+
 <style>
 body{
-  font-family: Arial;
+  font-family: Arial, sans-serif;
   padding:20px;
 }
 .order{
-  border:1px solid #ddd;
+  border:1px solid #ccc;
   background:#f9f9f9;
   padding:10px;
   margin-bottom:10px;
@@ -32,29 +33,31 @@ const firebaseConfig = {
   projectId: "matger-3182c",
   storageBucket: "matger-3182c.firebasestorage.app",
   messagingSenderId: "526848781702",
-  appId: "1:526848781702:web:17907d973ded7894df5007",
-  measurementId: "G-9PYF9PFT9G"
+  appId: "1:526848781702:web:17907d973ded7894df5007"
 };
 
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+const database = firebase.database();
+
 const ordersDiv = document.getElementById("orders");
 
-db.ref("orders").on("child_added", snapshot => {
+database.ref("orders").on("child_added", function(snapshot){
   const o = snapshot.val();
 
-  ordersDiv.innerHTML += `
-    <div class="order">
-      <b>🆔 رقم الطلب:</b> ${o.orderNumber}<br>
-      <b>📅 تاريخ الطلب:</b> ${o.orderDate}<br>
-      <b>👤 الاسم:</b> ${o.name}<br>
-      <b>📞 الهاتف:</b> ${o.phone}<br>
-      <b>📍 العنوان:</b> ${o.address}<br>
-      <b>📦 الطلب:</b> ${o.order}<br>
-      <b>📝 ملاحظات:</b> ${o.notes}<br>
-      <b>📌 الحالة:</b> ${o.status}
-    </div>
+  const div = document.createElement("div");
+  div.className = "order";
+  div.innerHTML = `
+    <b>رقم الطلب:</b> ${o.orderNumber}<br>
+    <b>التاريخ:</b> ${o.orderDate}<br>
+    <b>الاسم:</b> ${o.name}<br>
+    <b>الهاتف:</b> ${o.phone}<br>
+    <b>العنوان:</b> ${o.address}<br>
+    <b>الطلب:</b> ${o.order}<br>
+    <b>ملاحظات:</b> ${o.notes}<br>
+    <b>الحالة:</b> ${o.status}
   `;
+
+  ordersDiv.prepend(div);
 });
 </script>
 
