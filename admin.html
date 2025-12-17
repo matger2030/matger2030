@@ -2,30 +2,43 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>لوحة الطلبات</title>
-
+<title>لوحة الأدمن</title>
 <style>
-body{
-  font-family: Arial, sans-serif;
-  padding:20px;
-}
-.order{
-  border:1px solid #ccc;
-  background:#f9f9f9;
-  padding:10px;
-  margin-bottom:10px;
-}
+body{font-family:Arial;padding:20px}
+.order{border:1px solid #ccc;padding:10px;margin-bottom:10px}
+button{margin:5px}
 </style>
 </head>
 <body>
 
-<h2>📋 الطلبات الواردة</h2>
-<div id="orders"></div>
+<div id="login">
+  <h3>🔐 دخول الأدمن</h3>
+  <input id="pass" type="password" placeholder="كلمة السر">
+  <button onclick="login()">دخول</button>
+</div>
+
+<div id="panel" style="display:none">
+  <h2>📋 الطلبات</h2>
+  <p id="report"></p>
+  <div id="orders"></div>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
+const ADMIN_PASS = "1979";
+
+function login(){
+  if(document.getElementById("pass").value === ADMIN_PASS){
+    document.getElementById("login").style.display="none";
+    document.getElementById("panel").style.display="block";
+    loadOrders();
+  }else{
+    alert("❌ كلمة السر غير صحيحة");
+  }
+}
+
 const firebaseConfig = {
   apiKey: "AIzaSyCZ03IL9Rta0QltmoU_CzWkDxMyz_raouI",
   authDomain: "matger-3182c.firebaseapp.com",
@@ -37,28 +50,47 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+const db = firebase.database();
 
-const ordersDiv = document.getElementById("orders");
+function loadOrders(){
+  const ordersDiv = document.getElementById("orders");
+  ordersDiv.innerHTML = "";
+  let count = 0;
 
-database.ref("orders").on("child_added", function(snapshot){
-  const o = snapshot.val();
+  db.ref("orders").on("value", snap=>{
+    ordersDiv.innerHTML="";
+    count = 0;
 
-  const div = document.createElement("div");
-  div.className = "order";
-  div.innerHTML = `
-    <b>رقم الطلب:</b> ${o.orderNumber}<br>
-    <b>التاريخ:</b> ${o.orderDate}<br>
-    <b>الاسم:</b> ${o.name}<br>
-    <b>الهاتف:</b> ${o.phone}<br>
-    <b>العنوان:</b> ${o.address}<br>
-    <b>الطلب:</b> ${o.order}<br>
-    <b>ملاحظات:</b> ${o.notes}<br>
-    <b>الحالة:</b> ${o.status}
-  `;
+    snap.forEach(child=>{
+      count++;
+      const o = child.val();
+      const id = child.key;
 
-  ordersDiv.prepend(div);
-});
+      ordersDiv.innerHTML += `
+        <div class="order">
+          <b>${o.orderNumber}</b><br>
+          ${o.name} - ${o.phone}<br>
+          ${o.order}<br>
+          <textarea onchange="addNote('${id}',this.value)" placeholder="ملاحظة">${o.note||""}</textarea><br>
+          <button onclick="deleteOrder('${id}')">🗑️ حذف</button>
+        </div>
+      `;
+    });
+
+    document.getElementById("report").innerText =
+      "📊 إجمالي الطلبات: " + count;
+  });
+}
+
+function deleteOrder(id){
+  if(confirm("هل تريد حذف الطلب؟")){
+    db.ref("orders/"+id).remove();
+  }
+}
+
+function addNote(id,note){
+  db.ref("orders/"+id+"/note").set(note);
+}
 </script>
 
 </body>
