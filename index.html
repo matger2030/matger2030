@@ -3,21 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <title>إرسال طلب</title>
+
 <style>
 body{
-  font-family: Arial;
+  font-family: Arial, sans-serif;
   background:#f4f4f4;
   padding:20px;
 }
-input,textarea,button{
+input, textarea, button{
   width:100%;
   padding:10px;
   margin:8px 0;
   font-size:16px;
 }
 button{
-  background:#2e8b57;
-  color:#fff;
+  background:#28a745;
+  color:white;
   border:none;
   cursor:pointer;
 }
@@ -27,19 +28,20 @@ button{
 
 <h2>📦 إرسال طلب</h2>
 
-<input id="name" placeholder="الاسم">
-<input id="phone" placeholder="رقم الهاتف">
-<input id="address" placeholder="العنوان">
-<textarea id="order" placeholder="تفاصيل الطلب"></textarea>
-<textarea id="notes" placeholder="ملاحظات (اختياري)"></textarea>
+<input type="text" id="name" placeholder="الاسم">
+<input type="text" id="phone" placeholder="رقم الهاتف">
+<input type="text" id="address" placeholder="العنوان">
+<textarea id="orderText" placeholder="تفاصيل الطلب"></textarea>
+<textarea id="notes" placeholder="ملاحظات"></textarea>
 
-<button onclick="sendOrder()">إرسال الطلب</button>
+<button id="sendOrderBtn">إرسال الطلب</button>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
+/* Firebase Config */
 const firebaseConfig = {
   apiKey: "AIzaSyCZ03IL9Rta0QltmoU_CzWkDxMyz_raouI",
   authDomain: "matger-3182c.firebaseapp.com",
@@ -47,40 +49,53 @@ const firebaseConfig = {
   projectId: "matger-3182c",
   storageBucket: "matger-3182c.firebasestorage.app",
   messagingSenderId: "526848781702",
-  appId: "1:526848781702:web:17907d973ded7894df5007",
-  measurementId: "G-9PYF9PFT9G"
+  appId: "1:526848781702:web:17907d973ded7894df5007"
 };
 
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+const database = firebase.database();
 
-function sendOrder(){
-  const orderRef = db.ref("orders").push();
-  const orderNumber = orderRef.key;
-  const orderDate = new Date().toLocaleString("ar-EG");
+/* زر الإرسال */
+document.getElementById("sendOrderBtn").onclick = function(){
+
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const address = document.getElementById("address").value.trim();
+  const orderText = document.getElementById("orderText").value.trim();
+  const notes = document.getElementById("notes").value.trim();
+
+  if(name === "" || phone === "" || address === "" || orderText === ""){
+    alert("❌ برجاء إدخال جميع البيانات");
+    return;
+  }
+
+  const ordersRef = database.ref("orders");
+  const newOrder = ordersRef.push();
 
   const orderData = {
-    orderNumber: orderNumber,
-    orderDate: orderDate,
-    name: name.value,
-    phone: phone.value,
-    address: address.value,
-    order: order.value,
-    notes: notes.value,
+    orderNumber: newOrder.key,
+    orderDate: new Date().toLocaleString("ar-EG"),
+    name: name,
+    phone: phone,
+    address: address,
+    order: orderText,
+    notes: notes,
     status: "جديد"
   };
 
-  orderRef.set(orderData).then(()=>{
+  newOrder.set(orderData)
+  .then(function(){
     alert(
-      "✅ تم إرسال طلبك بنجاح\n\n" +
-      "🆔 رقم الطلب: " + orderNumber + "\n" +
-      "📅 تاريخ الطلب: " + orderDate
+      "✅ تم إرسال الطلب بنجاح\n\n" +
+      "🆔 رقم الطلب: " + orderData.orderNumber
     );
 
-    document.querySelectorAll("input,textarea")
-      .forEach(el => el.value = "");
+    document.querySelectorAll("input, textarea").forEach(e => e.value = "");
+  })
+  .catch(function(error){
+    alert("خطأ: " + error.message);
   });
-}
+};
 </script>
 
 </body>
