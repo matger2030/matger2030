@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>لوحة الطلبات</title>
+<title>لوحة الأدمن</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 
@@ -30,16 +30,18 @@ body{
 
 input{
   padding:10px;
-  width:200px;
+  width:220px;
   border-radius:8px;
   border:1px solid #ccc;
 }
 
 button{
-  padding:8px 14px;
+  padding:8px 16px;
   border:none;
   border-radius:8px;
   cursor:pointer;
+  background:#2c5364;
+  color:#fff;
 }
 
 .order{
@@ -48,12 +50,6 @@ button{
   padding:15px;
   margin-bottom:15px;
   box-shadow:0 8px 20px rgba(0,0,0,.08);
-  animation:fade .4s ease;
-}
-
-@keyframes fade{
-  from{opacity:0;transform:scale(.97)}
-  to{opacity:1;transform:scale(1)}
 }
 
 .order h4{
@@ -75,21 +71,22 @@ textarea{
 
 .delete{
   background:#c0392b;
-  color:#fff;
   margin-top:8px;
 }
 </style>
 </head>
 <body>
 
-<div class="login" id="login">
+<!-- 🔐 LOGIN -->
+<div class="login" id="loginBox">
   <h3>🔐 دخول الأدمن</h3>
-  <input id="pass" type="password" placeholder="كلمة السر">
+  <input id="passwordInput" type="password" placeholder="كلمة السر">
   <br><br>
-  <button onclick="login()">دخول</button>
+  <button id="loginBtn">دخول</button>
 </div>
 
-<div class="panel" id="panel" style="display:none">
+<!-- 📋 PANEL -->
+<div class="panel" id="panelBox" style="display:none">
   <h2>📋 الطلبات</h2>
   <p id="report"></p>
   <div id="orders"></div>
@@ -99,16 +96,25 @@ textarea{
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-const ADMIN_PASS="1979";
+/* ================== AUTH ================== */
+const ADMIN_PASS = "1979";
 
-function login(){
-  if(pass.value===ADMIN_PASS){
-    login.style.display="none";
-    panel.style.display="block";
+const loginBox = document.getElementById("loginBox");
+const panelBox = document.getElementById("panelBox");
+const passwordInput = document.getElementById("passwordInput");
+const loginBtn = document.getElementById("loginBtn");
+
+loginBtn.onclick = function(){
+  if(passwordInput.value === ADMIN_PASS){
+    loginBox.style.display = "none";
+    panelBox.style.display = "block";
     loadOrders();
-  }else alert("❌ كلمة السر غير صحيحة");
-}
+  }else{
+    alert("❌ كلمة السر غير صحيحة");
+  }
+};
 
+/* ================== FIREBASE ================== */
 const firebaseConfig = {
   apiKey: "AIzaSyCZ03IL9Rta0QltmoU_CzWkDxMyz_raouI",
   authDomain: "matger-3182c.firebaseapp.com",
@@ -120,18 +126,23 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-const db=firebase.database();
+const db = firebase.database();
 
+/* ================== LOAD ORDERS ================== */
 function loadOrders(){
-  db.ref("orders").on("value",snap=>{
-    orders.innerHTML="";
-    let count=0;
+  const ordersDiv = document.getElementById("orders");
+  const report = document.getElementById("report");
 
-    snap.forEach(ch=>{
+  db.ref("orders").on("value", snapshot=>{
+    ordersDiv.innerHTML = "";
+    let count = 0;
+
+    snapshot.forEach(child=>{
       count++;
-      const o=ch.val(),id=ch.key;
+      const o = child.val();
+      const id = child.key;
 
-      orders.innerHTML+=`
+      ordersDiv.innerHTML += `
         <div class="order">
           <h4>🧾 ${o.orderNumber}</h4>
           <span><b>الاسم:</b> ${o.name}</span>
@@ -140,23 +151,27 @@ function loadOrders(){
           <span><b>الطلب:</b> ${o.order}</span>
           <span><b>الوقت:</b> ${o.date} - ${o.time}</span>
 
-          <textarea placeholder="ملاحظة" onchange="addNote('${id}',this.value)">${o.note||""}</textarea>
-          <button class="delete" onclick="del('${id}')">🗑️ حذف</button>
+          <textarea placeholder="ملاحظة" 
+            onchange="addNote('${id}', this.value)">${o.note || ""}</textarea>
+
+          <button class="delete" onclick="deleteOrder('${id}')">🗑️ حذف</button>
         </div>
       `;
     });
 
-    report.innerText="📊 إجمالي الطلبات: "+count;
+    report.innerText = "📊 إجمالي الطلبات: " + count;
   });
 }
 
-function del(id){
-  if(confirm("حذف الطلب؟")){
+/* ================== ACTIONS ================== */
+function deleteOrder(id){
+  if(confirm("هل تريد حذف الطلب؟")){
     db.ref("orders/"+id).remove();
   }
 }
-function addNote(id,val){
-  db.ref("orders/"+id+"/note").set(val);
+
+function addNote(id,value){
+  db.ref("orders/"+id+"/note").set(value);
 }
 </script>
 
