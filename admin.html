@@ -80,19 +80,9 @@ textarea{
 <!-- 🔐 LOGIN -->
 <div class="login" id="loginBox">
   <h3>🔐 دخول الأدمن</h3>
-
-  <input 
-    id="passwordInput" 
-    type="password" 
-    placeholder="كلمة السر"
-  >
-
+  <input id="passwordInput" type="password" placeholder="كلمة السر">
   <br><br>
-
-  <!-- لاحظ type="button" مهم جدًا -->
-  <button id="loginBtn" type="button">
-    دخول
-  </button>
+  <button id="loginBtn">دخول</button>
 </div>
 
 <!-- 📋 PANEL -->
@@ -106,29 +96,24 @@ textarea{
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
+/* ================== AUTH ================== */
 const ADMIN_PASS = "1979";
 
-document.addEventListener("DOMContentLoaded", function () {
+const loginBox = document.getElementById("loginBox");
+const panelBox = document.getElementById("panelBox");
+const passwordInput = document.getElementById("passwordInput");
+const loginBtn = document.getElementById("loginBtn");
 
-  const loginBtn = document.getElementById("loginBtn");
-  const passwordInput = document.getElementById("passwordInput");
-  const loginBox = document.getElementById("loginBox");
-  const panelBox = document.getElementById("panelBox");
+loginBtn.onclick = function(){
+  if(passwordInput.value === ADMIN_PASS){
+    loginBox.style.display = "none";
+    panelBox.style.display = "block";
+    loadOrders();
+  }else{
+    alert("❌ كلمة السر غير صحيحة");
+  }
+};
 
-  loginBtn.addEventListener("click", function () {
-
-    if (passwordInput.value === ADMIN_PASS) {
-      loginBox.style.display = "none";
-      panelBox.style.display = "block";
-      loadOrders(); // تحميل الطلبات
-    } else {
-      alert("❌ كلمة السر غير صحيحة");
-    }
-
-  });
-
-});
-</script>
 /* ================== FIREBASE ================== */
 const firebaseConfig = {
   apiKey: "AIzaSyCZ03IL9Rta0QltmoU_CzWkDxMyz_raouI",
@@ -192,4 +177,3 @@ function addNote(id,value){
 
 </body>
 </html>
-
