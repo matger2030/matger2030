@@ -2,18 +2,14 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>لوحة الأدمن</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
 *{box-sizing:border-box;font-family:'Cairo',sans-serif}
-
-body{
-  margin:0;
-  background:#f4f6f8;
-  padding:20px;
-}
+body{margin:0;background:#f4f6f8;padding:15px}
 
 .login,.panel{
   max-width:1000px;
@@ -23,69 +19,54 @@ body{
 .login{
   background:#fff;
   padding:25px;
-  border-radius:14px;
+  border-radius:18px;
   text-align:center;
-  box-shadow:0 10px 30px rgba(0,0,0,.1);
+  box-shadow:0 10px 30px rgba(0,0,0,.15);
 }
 
-input{
+input,textarea{
+  width:100%;
   padding:10px;
-  width:220px;
-  border-radius:8px;
+  border-radius:10px;
   border:1px solid #ccc;
+  margin-top:8px;
 }
 
 button{
-  padding:8px 16px;
+  padding:10px 18px;
   border:none;
-  border-radius:8px;
+  border-radius:10px;
   cursor:pointer;
-  background:#2c5364;
+  background:#1d4350;
   color:#fff;
+  margin-top:10px;
 }
 
 .order{
   background:#fff;
-  border-radius:14px;
+  border-radius:18px;
   padding:15px;
   margin-bottom:15px;
-  box-shadow:0 8px 20px rgba(0,0,0,.08);
+  box-shadow:0 8px 25px rgba(0,0,0,.1);
 }
 
-.order h4{
-  margin:0 0 8px;
-  color:#2c5364;
-}
+.order h4{margin:0 0 6px;color:#1d4350}
 
-.order span{
-  display:block;
-  margin-bottom:4px;
-  font-size:14px;
-}
+.delete{background:#c0392b}
 
-textarea{
-  width:100%;
-  border-radius:8px;
-  margin-top:6px;
-}
-
-.delete{
-  background:#c0392b;
-  margin-top:8px;
+@media(max-width:600px){
+  body{padding:10px}
 }
 </style>
 </head>
 <body>
 
-<!-- 🔐 LOGIN -->
 <div class="login" id="loginBox">
   <h3>🔐 دخول الأدمن</h3>
-  <input id="passwordInput" type="password" placeholder="كلمة السر">
-  <br><br>
-  <button id="loginBtn">دخول</button>
+  <input id="pass" type="password" placeholder="كلمة السر">
+  <button id="loginBtn" type="button">دخول</button>
 </div>
 
-<!-- 📋 PANEL -->
 <div class="panel" id="panelBox" style="display:none">
   <h2>📋 الطلبات</h2>
   <p id="report"></p>
@@ -96,84 +77,49 @@ textarea{
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-/* ================== AUTH ================== */
-const ADMIN_PASS = "1979";
+const ADMIN_PASS="1979";
 
-const loginBox = document.getElementById("loginBox");
-const panelBox = document.getElementById("panelBox");
-const passwordInput = document.getElementById("passwordInput");
-const loginBtn = document.getElementById("loginBtn");
-
-loginBtn.onclick = function(){
-  if(passwordInput.value === ADMIN_PASS){
-    loginBox.style.display = "none";
-    panelBox.style.display = "block";
+loginBtn.onclick=()=>{
+  if(pass.value===ADMIN_PASS){
+    loginBox.style.display="none";
+    panelBox.style.display="block";
     loadOrders();
-  }else{
-    alert("❌ كلمة السر غير صحيحة");
-  }
+  }else alert("❌ كلمة السر غير صحيحة");
 };
 
-/* ================== FIREBASE ================== */
-const firebaseConfig = {
-  apiKey: "AIzaSyCZ03IL9Rta0QltmoU_CzWkDxMyz_raouI",
-  authDomain: "matger-3182c.firebaseapp.com",
-  databaseURL: "https://matger-3182c-default-rtdb.firebaseio.com",
-  projectId: "matger-3182c",
-  storageBucket: "matger-3182c.firebasestorage.app",
-  messagingSenderId: "526848781702",
-  appId: "1:526848781702:web:17907d973ded7894df5007"
-};
+firebase.initializeApp({
+  apiKey:"AIzaSyCZ03IL9Rta0QltmoU_CzWkDxMyz_raouI",
+  authDomain:"matger-3182c.firebaseapp.com",
+  databaseURL:"https://matger-3182c-default-rtdb.firebaseio.com",
+  projectId:"matger-3182c"
+});
+const db=firebase.database();
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-/* ================== LOAD ORDERS ================== */
 function loadOrders(){
-  const ordersDiv = document.getElementById("orders");
-  const report = document.getElementById("report");
-
-  db.ref("orders").on("value", snapshot=>{
-    ordersDiv.innerHTML = "";
-    let count = 0;
-
-    snapshot.forEach(child=>{
-      count++;
-      const o = child.val();
-      const id = child.key;
-
-      ordersDiv.innerHTML += `
-        <div class="order">
-          <h4>🧾 ${o.orderNumber}</h4>
-          <span><b>الاسم:</b> ${o.name}</span>
-          <span><b>الهاتف:</b> ${o.phone}</span>
-          <span><b>العنوان:</b> ${o.address}</span>
-          <span><b>الطلب:</b> ${o.order}</span>
-          <span><b>الوقت:</b> ${o.date} - ${o.time}</span>
-
-          <textarea placeholder="ملاحظة" 
-            onchange="addNote('${id}', this.value)">${o.note || ""}</textarea>
-
-          <button class="delete" onclick="deleteOrder('${id}')">🗑️ حذف</button>
-        </div>
-      `;
+  db.ref("orders").on("value",snap=>{
+    orders.innerHTML="";
+    let c=0;
+    snap.forEach(s=>{
+      c++;
+      const o=s.val(),id=s.key;
+      orders.innerHTML+=`
+      <div class="order">
+        <h4>${o.orderNumber}</h4>
+        <div>👤 ${o.name}</div>
+        <div>📞 ${o.phone}</div>
+        <div>📍 ${o.address}</div>
+        <div>🛒 ${o.order}</div>
+        <div>⏰ ${o.date} - ${o.time}</div>
+        <textarea placeholder="ملاحظة" onchange="note('${id}',this.value)">${o.note||""}</textarea>
+        <button class="delete" onclick="del('${id}')">🗑️ حذف</button>
+      </div>`;
     });
-
-    report.innerText = "📊 إجمالي الطلبات: " + count;
+    report.innerText="📊 إجمالي الطلبات: "+c;
   });
 }
 
-/* ================== ACTIONS ================== */
-function deleteOrder(id){
-  if(confirm("هل تريد حذف الطلب؟")){
-    db.ref("orders/"+id).remove();
-  }
-}
-
-function addNote(id,value){
-  db.ref("orders/"+id+"/note").set(value);
-}
+function del(id){ if(confirm("حذف الطلب؟")) db.ref("orders/"+id).remove(); }
+function note(id,v){ db.ref("orders/"+id+"/note").set(v); }
 </script>
-
 </body>
 </html>
